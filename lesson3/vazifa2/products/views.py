@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from .models import Product
 from rest_framework.response import Response
 from rest_framework.generics import get_object_or_404
-
+from django.db.models import Q
 
 
 
@@ -20,11 +20,31 @@ class ProductCreateAPIView(APIView):
 
 
 
+###############################################
+#         Search va PAgination qismi          #                          
+###############################################
+
+
 class ProductListAPIView(APIView):
     def get(self, request):
-        products = Product.objects.all()
-        serializer = ProductSerializer(products, many=True)
+        search = request.query_params.get('search')
+        if search:
+            products = Product.objects.filter(
+                Q(title__icontains=search) |
+                Q(description__icontains=search)|
+                Q(price__icontains=search)|
+                Q(stock__icontains=search)
+            )
+        else:
+            products = Product.objects.all()
 
+        page = int(request.query_params.get('page', 1))
+        page_size = 3
+
+        start = (page - 1)*page_size
+        end = start + page_size
+        products = products[start:end]
+        serializer = ProductSerializer(products, many=True)
         return Response({
             "msg" : "Products list",
             "products" : serializer.data
