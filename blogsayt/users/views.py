@@ -27,12 +27,11 @@ class SignInView(APIView):
         password = serializer.validated_data['password']
 
         user = authenticate(request=request, username=username, password=password)
-        token, created = Token.objects.get_or_create(user=user)
         if user is None:
             return Response({
                 "msg" : "Login yoki parol xato"
             }, status=status.HTTP_401_UNAUTHORIZED)
-        
+        token, created = Token.objects.get_or_create(user=user)
         return Response({
             "msg" : "Logged in",
             "user" : {
@@ -73,13 +72,12 @@ class PasswordUpdateView(APIView):
         old_password = serializer.validated_data.get('old_password')
         new_password = serializer.validated_data.get('new_password')
 
-        cr_user = authenticate(username=request.user.username, password=old_password)
-        if cr_user is None:
+        if not request.user.check_password(old_password):
             return Response({
                 "msg" : "Eski parol noto'g'ri"
             }, status=status.HTTP_400_BAD_REQUEST)
-        cr_user.set_password(new_password)
-        cr_user.save()
+        request.user.set_password(new_password)
+        request.user.save()
         return Response({
             "msg" : "Password updated !"
         })

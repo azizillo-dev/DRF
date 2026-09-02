@@ -19,6 +19,10 @@ class SignUpSerializer(serializers.ModelSerializer):
             raise ValidationError(detail='Parollar mos emas!')
         return attrs
 
+    def create(self, validated_data):
+        validated_data.pop("conf_password")
+        return CustomUSer.objects.create_user(**validated_data)
+
 
 
 class SignInSerializer(serializers.Serializer):
