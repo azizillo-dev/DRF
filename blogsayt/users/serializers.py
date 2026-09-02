@@ -10,7 +10,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     conf_password = serializers.CharField(write_only=True)
     class Meta:
         model = CustomUSer
-        fields = ['id', 'first_name', 'last_name', 'email', 'address', 'password', 'conf_password']
+        fields = ['id', 'first_name', 'last_name', 'username', 'email', 'address', 'password', 'conf_password']
 
     def validate(self, attrs):
         password = attrs.get('password')
@@ -19,4 +19,37 @@ class SignUpSerializer(serializers.ModelSerializer):
             raise ValidationError(detail='Parollar mos emas!')
         return attrs
 
-    
+
+
+class SignInSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUSer
+        fields = ['id', 'first_name', 'last_name','username', 'email', 'address', 'phone_number']
+
+
+class ProfileUpdateSerializer(ProfileSerializer):
+    pass
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+    conf_password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        new_password = attrs.get("new_password")
+        conf_password = attrs.get("conf_password")
+
+        if new_password and conf_password and new_password != conf_password:
+            raise ValidationError(detail="Yangi parollar mos emas!")
+
+        return attrs
+
+        
+
+
