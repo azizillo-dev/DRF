@@ -5,6 +5,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework import status
 from users.permissions import *
+from django.db.models import Q
 
 
 class CreatePostView(APIView):
@@ -24,7 +25,14 @@ class CreatePostView(APIView):
 class PostListView(APIView):
 
     def get(self, request):
-        posts = Post.objects.all()
+        search = request.query_params.get('search')
+        if search:
+            posts = Post.objects.filter(
+                Q(title__icontains=search) |
+                Q(body__icontains=search)
+            )
+        else:
+            posts = Post.objects.all()
         serializer = PostSerializer(posts, many=True)
         return Response({
             "msg": "All posts",

@@ -22,24 +22,8 @@ class SignInView(APIView):
     def post(self, request):
         serializer = SignInSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        username = serializer.validated_data['username']
-        password = serializer.validated_data['password']
-
-        user = authenticate(request=request, username=username, password=password)
-        if user is None:
-            return Response({
-                "msg" : "Login yoki parol xato"
-            }, status=status.HTTP_401_UNAUTHORIZED)
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            "msg" : "Logged in",
-            "user" : {
-                "id" : user.id,
-                "username" : user.username
-            },
-            "token" : token.key
-        }, status=status.HTTP_200_OK)
+        return Response(serializer.data)
+    
 
 
 class ProfileView(APIView):

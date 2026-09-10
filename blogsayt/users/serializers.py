@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import CustomUSer
 from rest_framework.exceptions import ValidationError
-
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
 
 
 class SignUpSerializer(serializers.ModelSerializer):
@@ -24,10 +25,31 @@ class SignUpSerializer(serializers.ModelSerializer):
         return CustomUSer.objects.create_user(**validated_data)
 
 
+    def to_representation(self, instance):
+        user = super().to_representation(instance)
+        return {
+            "msg" : "Signed Up",
+            "user" : user
+        }
+
+
 
 class SignInSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField()
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
+    def validate(self, data):
+        username = data.get("username")
+        password = data.get("password")
+
+        user = authenticate(
+            username=username,
+            password=password
+        )
+        if not user:
+            raise ValidationError("Login yoki parol xato!")
+        token, created = Token.objects.get_or_create(user=user)
+        data["token"] = token.key
+        return data
 
 
 class ProfileSerializer(serializers.ModelSerializer):
