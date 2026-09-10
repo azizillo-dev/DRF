@@ -51,17 +51,9 @@ class ProfileUpdateView(APIView):
 class PasswordUpdateView(APIView):
     permission_classes = [IsLoggedIn, ]
     def put(self, request):
-        serializer = PasswordChangeSerializer(data=request.data)
+        serializer = PasswordChangeSerializer(data=request.data, instance=request.user)
         serializer.is_valid(raise_exception=True)
-        old_password = serializer.validated_data.get('old_password')
-        new_password = serializer.validated_data.get('new_password')
-
-        if not request.user.check_password(old_password):
-            return Response({
-                "msg" : "Eski parol noto'g'ri"
-            }, status=status.HTTP_400_BAD_REQUEST)
-        request.user.set_password(new_password)
-        request.user.save()
+        serializer.save()
         return Response({
             "msg" : "Password updated !"
         })

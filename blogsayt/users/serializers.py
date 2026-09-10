@@ -37,6 +37,7 @@ class SignUpSerializer(serializers.ModelSerializer):
 class SignInSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
     password = serializers.CharField(required=True, write_only=True)
+    token = serializers.CharField(read_only=True)
     def validate(self, data):
         username = data.get("username")
         password = data.get("password")
@@ -71,10 +72,20 @@ class PasswordChangeSerializer(serializers.Serializer):
         new_password = attrs.get("new_password")
         conf_password = attrs.get("conf_password")
 
-        if new_password and conf_password and new_password != conf_password:
+        if new_password != conf_password:
             raise ValidationError(detail="Yangi parollar mos emas!")
 
         return attrs
+
+    def update(self, instance, validated_data):
+        old_password = validated_data['old_password']
+        new_password = validated_data['new_password']
+        if not instance.chech_password(old_password):
+            raise ValidationError(detail="Eski parol xato!")
+        instance.set_password(new_password)
+        instance.save()
+        return instance
+        
 
         
 
